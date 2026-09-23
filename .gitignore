@@ -1,0 +1,142 @@
+# ============================================
+# IDE SETTINGS
+# ============================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ============================================
+# PROJECT BUILD
+# ============================================
+target/
+build/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+# ============================================
+# GRADLE
+# ============================================
+.gradle/
+build/
+gradle-app.setting
+.gradletasknamecache
+
+# ============================================
+# MAVEN
+# ============================================
+pom.xml.asc
+*.jks
+
+# ============================================
+# SPRING BOOT
+# ============================================
+application.properties
+application.yml
+application-local.properties
+application-local.yml
+application-dev.properties
+application-prod.properties
+.env
+.env.local
+
+# ============================================
+# DATABASE & LOGS
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+*.pid
+
+# ============================================
+# ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.*.local
+secrets/
+private/
+
+# ============================================
+# IDE FILES
+# ============================================
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ============================================
+# COVERAGE & TEST REPORTS
+# ============================================
+coverage/
+.coverage
+.pytest_cache/
+junit.xml
+*.lcov
+
+# ============================================
+# NODE (if using Angular frontend)
+# ============================================
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.angular/
+
+# ============================================
+# OS FILES
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+.docker/
+.dockerignore
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+~*
+
+# ============================================
+# CUSTOM
+# ============================================
+.env.prod
+.env.staging
+local-config/
+private-keys/
