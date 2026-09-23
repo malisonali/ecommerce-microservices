@@ -3,7 +3,7 @@
 ## Directory Layout
 
 ```
-ecommerce-microservices-kafka-aws/
+ecommerce-microservices/
 │
 ├── ecommerce-parent/                          # Parent Maven module
 │   ├── pom.xml                                # Parent POM (dependency management)
@@ -431,7 +431,7 @@ mvn clean install -pl user-service
 
 ### Day 1
 ```
-ecommerce-microservices-kafka-aws/
+ecommerce-microservices/
 ├── docs/
 ├── .gitignore
 ├── README.md
@@ -476,22 +476,99 @@ Add:
 
 ---
 
-## IDE Setup
+## IDE Setup (IntelliJ IDEA)
 
-### IntelliJ IDEA
+### Opening the Project
 
-1. File → Open → Select `ecommerce-parent` folder
-2. IDE recognizes Maven multi-module project
-3. Right-click service → Run → Spring Boot Application
-4. Or: Run → Edit Configurations → Add Spring Boot config
+1. Open IntelliJ IDEA
+2. Click **File → Open**
+3. Select the `ecommerce-parent` folder
+4. Click **Open as Project**
+5. IDE will automatically recognize Maven multi-module project
 
-### VS Code
+### Running Microservices
 
-1. Open folder: `ecommerce-microservices-kafka-aws`
-2. Install: "Extension Pack for Java"
-3. Install: "Spring Boot Extension Pack"
-4. View → Explorer → See Maven projects
-5. To run: Terminal → Run Spring Boot app
+**Method 1: Using Run Configuration (Recommended)**
+
+1. Go to **Run → Edit Configurations**
+2. Click **+** to add new configuration
+3. Select **Spring Boot**
+4. Fill in:
+   - Name: `User Service`
+   - Main class: `com.ecommerce.user.UserServiceApplication`
+   - Working directory: `user-service`
+   - VM options: `-Dserver.port=8081`
+5. Click **OK**
+6. Click the green **Run** button or press **Shift + F10**
+
+**Method 2: Quick Run (Faster)**
+
+1. Open any service's main class (e.g., `UserServiceApplication.java`)
+2. Look for green **▶** arrow next to class name
+3. Click it → Select **Run**
+4. Service starts automatically
+
+### Running All Services
+
+Open 6 terminal tabs (one per service):
+
+```bash
+# Terminal 1: User Service
+cd user-service
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8081"
+
+# Terminal 2: Product Service
+cd product-service
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8082"
+
+# Terminal 3: Order Service
+cd order-service
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8083"
+
+# Terminal 4: Payment Service
+cd payment-service
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8084"
+
+# Terminal 5: Notification Service
+cd notification-service
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8085"
+
+# Terminal 6: API Gateway
+cd api-gateway
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080"
+```
+
+### Useful IntelliJ Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| **Ctrl + Alt + Shift + S** | Project Structure |
+| **Ctrl + Shift + O** | Optimize Imports |
+| **Ctrl + Alt + L** | Reformat Code |
+| **Shift + F10** | Run |
+| **Shift + F9** | Debug |
+| **Ctrl + Shift + F10** | Run in context |
+| **Alt + 6** | View Problems |
+| **Ctrl + P** | Parameter Info |
+| **Ctrl + Q** | Quick Documentation |
+
+### IntelliJ Maven Configuration
+
+**Enable Maven Auto-Reload:**
+1. File → Settings → Build, Execution, Deployment → Build Tools → Maven
+2. Enable **Always update snapshots**
+3. Check **Show Projects roots in External Libraries**
+
+**Run Maven Build:**
+1. View → Tool Windows → Maven (or Alt + 1)
+2. Double-click the goal you want to run
+3. Or: Run → Maven → Clean, Compile, etc.
+
+### IntelliJ Terminal
+
+- Press **Alt + F12** to open terminal in IntelliJ
+- Run Maven commands directly from IDE terminal
+- See output in real-time
 
 ---
 
