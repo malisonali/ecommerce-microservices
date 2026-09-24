@@ -31,8 +31,8 @@ A complete e-commerce system built with modern microservices architecture:
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/ecommerce-microservices-kafka-aws.git
-cd ecommerce-microservices-kafka-aws
+git clone https://github.com/YOUR_USERNAME/ecommerce-microservices.git
+cd ecommerce-microservices
 
 # Start infrastructure
 docker-compose up -d
@@ -69,7 +69,7 @@ cd api-gateway && mvn spring-boot:run -Dspring-boot.run.arguments="--server.port
 ## 📁 Project Structure
 
 ```
-ecommerce-microservices-kafka-aws/
+ecommerce-microservices/
 ├── ecommerce-parent/              # Parent POM (dependency management)
 ├── user-service/                  # User & Authentication Service
 ├── product-service/               # Product Catalog Service
