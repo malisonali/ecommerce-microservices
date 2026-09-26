@@ -1,11 +1,15 @@
 package com.ecommerce.user_service.service;
 
+import com.ecommerce.user_service.dto.AuthResponse;
+import com.ecommerce.user_service.dto.LoginRequest;
 import com.ecommerce.user_service.dto.RegisterRequest;
 import com.ecommerce.user_service.dto.UserResponse;
 import com.ecommerce.user_service.entity.Role;
 import com.ecommerce.user_service.entity.User;
 import com.ecommerce.user_service.exception.EmailAlreadyExistsException;
+import com.ecommerce.user_service.exception.InvalidCredentialsException;
 import com.ecommerce.user_service.repository.UserRepository;
+import com.ecommerce.user_service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserResponse Register(RegisterRequest request){
         // 1. Normalize the email so "Sonali@Gmail.com " and "sonali@gmail.com" count as the same
@@ -38,6 +43,18 @@ public class UserService {
 
         // 5. Return a safe response without the password
         return toResponse(savedUser);
+    }
+
+    public AuthResponse login(LoginRequest request){
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(InvalidCredentialsException::new);
+
+        if(!passwordEncoder.matches(request.password(), user.getPassword())){
+            throw new InvalidCredentialsException();
+        }
+
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token);
     }
 
     private UserResponse toResponse(User user) {

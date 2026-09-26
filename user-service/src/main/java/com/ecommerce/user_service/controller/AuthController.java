@@ -1,5 +1,7 @@
 package com.ecommerce.user_service.controller;
 
+import com.ecommerce.user_service.dto.AuthResponse;
+import com.ecommerce.user_service.dto.LoginRequest;
 import com.ecommerce.user_service.dto.RegisterRequest;
 import com.ecommerce.user_service.dto.UserResponse;
 import com.ecommerce.user_service.service.UserService;
@@ -22,5 +24,10 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         UserResponse response = userService.Register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public  ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
+        return ResponseEntity.ok(userService.login(request));
     }
 }
