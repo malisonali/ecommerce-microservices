@@ -39,4 +39,11 @@ public class GlobalExceptionHandler {
                 problem.setTitle("Invalid credentials");
                 return problem;
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleUserNotFoundException(UserNotFoundException ex){
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("User not found.");
+        return problem;
+    }
 }

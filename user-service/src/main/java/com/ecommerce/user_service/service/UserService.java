@@ -8,11 +8,13 @@ import com.ecommerce.user_service.entity.Role;
 import com.ecommerce.user_service.entity.User;
 import com.ecommerce.user_service.exception.EmailAlreadyExistsException;
 import com.ecommerce.user_service.exception.InvalidCredentialsException;
+import com.ecommerce.user_service.exception.UserNotFoundException;
 import com.ecommerce.user_service.repository.UserRepository;
 import com.ecommerce.user_service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +57,14 @@ public class UserService {
 
         String token = jwtService.generateToken(user);
         return new AuthResponse(token);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getCurrentUser(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException(email)
+        );
+        return toResponse(user);
     }
 
     private UserResponse toResponse(User user) {

@@ -1,6 +1,7 @@
 package com.ecommerce.user_service.security;
 
 import com.ecommerce.user_service.entity.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -32,5 +33,17 @@ public class JwtService {
                 .expiration(expiry)
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public String extractEmail(String token){
+        return parseClaims(token).getSubject();
+    }
+
+    public Claims parseClaims(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
