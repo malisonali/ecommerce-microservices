@@ -1,5 +1,7 @@
 package com.ecommerce.product_service.controller;
 
+import com.ecommerce.product_service.dto.PageResponse;
+import com.ecommerce.product_service.dto.ProductFilter;
 import com.ecommerce.product_service.dto.ProductRequest;
 import com.ecommerce.product_service.dto.ProductResponse;
 import com.ecommerce.product_service.service.ProductService;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 
 @RestController
@@ -33,5 +36,33 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
+    }
+
+    @GetMapping
+    public PageResponse<ProductResponse> getProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        ProductFilter filter = new ProductFilter(category, minPrice, maxPrice, name, inStock);
+        return productService.getProducts(filter, page, size, sortBy, direction);
+    }
+
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(@PathVariable Long id,
+                                         @Valid @RequestBody ProductRequest request) {
+        return productService.updateProduct(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 }

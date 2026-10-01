@@ -37,4 +37,11 @@ public class GlobalExceptionHandler {
         problem.setProperty("errors", errors);
         return problem;
     }
+
+    @ExceptionHandler(InvalidQueryParameterException.class)
+    public ProblemDetail handleInvalidQueryParameterException(InvalidQueryParameterException ex){
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invalid Query Parameter");
+        return problem;
+    }
 }
