@@ -31,7 +31,7 @@ A complete e-commerce system built with modern microservices architecture:
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/ecommerce-microservices.git
+git clone https://github.com/malisonali/ecommerce-microservices.git
 cd ecommerce-microservices
 
 # Start infrastructure
