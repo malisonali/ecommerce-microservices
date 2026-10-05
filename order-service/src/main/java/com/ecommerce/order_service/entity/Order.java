@@ -1,5 +1,6 @@
 package com.ecommerce.order_service.entity;
 
+import com.ecommerce.order_service.exception.InvalidOrderStatusTransitionException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,6 +29,7 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Setter(AccessLevel.NONE)
     private OrderStatus status;
 
     @Column(nullable = false, precision = 12, scale = 2)
@@ -45,8 +47,18 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Version
+    private Long version;
+
     public void addItem(OrderItem item) {
         items.add(item);
         item.setOrder(this);
+    }
+
+    public void changeStatus(OrderStatus newStatus){
+        if(!status.canTransitionTo(newStatus)){
+            throw new InvalidOrderStatusTransitionException(id, status, newStatus);
+        }
+        this.status = newStatus;
     }
 }

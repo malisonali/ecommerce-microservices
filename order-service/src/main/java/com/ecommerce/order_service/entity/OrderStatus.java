@@ -5,5 +5,18 @@ public enum OrderStatus {
     CONFIRMED,
     SHIPPED,
     DELIVERED,
-    CANCELLED
+    CANCELLED;
+
+    public boolean canTransitionTo(OrderStatus next){
+        return switch (this){
+            case PENDING -> next == CONFIRMED || next == CANCELLED;
+            case CONFIRMED -> next == SHIPPED || next == CANCELLED;
+            case SHIPPED -> next == DELIVERED;
+            case DELIVERED, CANCELLED -> false;
+        };
+    }
+
+    public boolean isCancellableByCustomer(){
+        return this == PENDING || this == CONFIRMED;
+    }
 }

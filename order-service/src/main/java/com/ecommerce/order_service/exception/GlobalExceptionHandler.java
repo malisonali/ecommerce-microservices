@@ -2,6 +2,7 @@ package com.ecommerce.order_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,5 +37,16 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
         problem.setProperty("errors", errors);
         return problem;
+    }
+
+    @ExceptionHandler({InvalidOrderStatusTransitionException.class, OrderNotCancellableException.class})
+    public ProblemDetail handleInvalidTransition(InvalidOrderStatusTransitionException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "This order was just changed by someone else. Please reload it and try again.");
     }
 }

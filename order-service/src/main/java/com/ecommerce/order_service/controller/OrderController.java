@@ -35,4 +35,9 @@ public class OrderController {
     public OrderResponse getMyOrder(@PathVariable Long id, Authentication authentication) {
         return orderService.getMyOrder(id, authentication.getName());
     }
+
+    @PostMapping("/{id}/cancel")
+    public OrderResponse cancelMyOrder(@PathVariable Long id, Authentication authentication) {
+        return orderService.cancelMyOrder(id, authentication.getName());
+    }
 }
