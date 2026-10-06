@@ -5,6 +5,7 @@ import com.ecommerce.order_service.dto.*;
 import com.ecommerce.order_service.entity.Order;
 import com.ecommerce.order_service.entity.OrderItem;
 import com.ecommerce.order_service.entity.OrderStatus;
+import com.ecommerce.order_service.event.OrderEventPublisher;
 import com.ecommerce.order_service.exception.InsufficientStockException;
 import com.ecommerce.order_service.exception.OrderNotCancellableException;
 import com.ecommerce.order_service.exception.OrderNotFoundException;
@@ -29,6 +30,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
+    private final OrderEventPublisher orderEventPublisher;
 
     public OrderResponse placeOrder(String userEmail, OrderRequest request) {
 
@@ -79,6 +81,7 @@ public class OrderService {
         // 5. Save the order and its items in one go (cascade)
         order.setTotalAmount(total);
         Order saved = orderRepository.save(order);
+        orderEventPublisher.publishOrderPlaced(saved);
 
         log.info("Order {} placed by {} with total {}", saved.getId(), userEmail, total);
         return toResponse(saved);
