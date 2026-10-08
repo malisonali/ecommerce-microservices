@@ -116,6 +116,44 @@ public class OrderService {
         return toResponse(order);
     }
 
+    @Transactional
+    public void confirmOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        switch (order.getStatus()) {
+            case PENDING -> {
+                order.changeStatus(OrderStatus.CONFIRMED);
+                log.info("Order {} confirmed: stock reserved", orderId);
+            }
+            case CANCELLED -> log.warn(
+                    "Stock reserved for order {} but it was already cancelled. "
+                            + "Stock is held for nothing until we release it (Day 15)", orderId);
+            default -> log.info(
+                    "Order {} is already {}, ignoring duplicate STOCK_RESERVED",
+                    orderId, order.getStatus());
+        }
+    }
+
+    @Transactional
+    public void rejectOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        switch (order.getStatus()) {
+            case PENDING -> {
+                order.changeStatus(OrderStatus.CANCELLED);
+                log.warn("Order {} cancelled: {}", orderId, reason);
+            }
+            case CANCELLED -> log.info(
+                    "Order {} is already CANCELLED, ignoring duplicate STOCK_RESERVATION_FAILED",
+                    orderId);
+            default -> log.error(
+                    "Order {} is {} but stock reservation failed. This should never happen",
+                    orderId, order.getStatus());
+        }
+    }
+
     // ---------- Admin ----------
 
     @Transactional(readOnly = true)
