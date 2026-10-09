@@ -111,6 +111,7 @@ public class OrderService {
         }
 
         order.changeStatus(OrderStatus.CANCELLED);
+        orderEventPublisher.publishOrderCancelled(order, userEmail);
 
         log.info("Order {} cancelled by customer {}", orderId, userEmail);
         return toResponse(order);
@@ -126,9 +127,9 @@ public class OrderService {
                 order.changeStatus(OrderStatus.CONFIRMED);
                 log.info("Order {} confirmed: stock reserved", orderId);
             }
-            case CANCELLED -> log.warn(
+            case CANCELLED -> log.info(
                     "Stock reserved for order {} but it was already cancelled. "
-                            + "Stock is held for nothing until we release it (Day 15)", orderId);
+                            + "The Product Service will release it when it reads ORDER_CANCELLED", orderId);
             default -> log.info(
                     "Order {} is already {}, ignoring duplicate STOCK_RESERVED",
                     orderId, order.getStatus());
@@ -179,6 +180,10 @@ public class OrderService {
 
         OrderStatus oldStatus = order.getStatus();
         order.changeStatus(newStatus);
+
+        if(newStatus == OrderStatus.CANCELLED){
+            orderEventPublisher.publishOrderCancelled(order, adminEmail);
+        }
 
         log.info("Order {} moved from {} to {} by admin {}", orderId, oldStatus, newStatus, adminEmail);
         return toResponse(order);

@@ -13,6 +13,7 @@ public record OrderPlacedEvent(
         List<OrderPlacedEvent.Item> items
 ) {
     public static final String TYPE = "ORDER_PLACED";
+    public static final String CANCELLED_TYPE = "ORDER_CANCELLED";
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Item(Long productId, int quantity) {

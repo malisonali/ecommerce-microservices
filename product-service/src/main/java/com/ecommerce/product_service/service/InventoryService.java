@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -80,5 +81,50 @@ public class InventoryService {
         return reservationRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalStateException(
                         "No reservation recorded for order " + orderId));
+    }
+
+    @Transactional
+    public void releaseStock(OrderPlacedEvent event) {
+        Optional<StockReservation> found = reservationRepository.findForUpdateByOrderId(event.orderId());
+
+        // The cancel arrived before the order was handled: leave a marker
+        if (found.isEmpty()) {
+            reservationRepository.save(StockReservation.builder()
+                    .orderId(event.orderId())
+                    .eventId(event.eventId())
+                    .status(ReservationStatus.CANCELLED)
+                    .reason("Order cancelled before stock was reserved")
+                    .build());
+            log.warn("Order {} was cancelled before it was handled. Saved a CANCELLED marker", event.orderId());
+            return;
+        }
+
+        StockReservation reservation = found.get();
+
+        switch (reservation.getStatus()) {
+            case RESERVED -> {
+                List<OrderPlacedEvent.Item> items = event.items().stream()
+                        .sorted(Comparator.comparing(OrderPlacedEvent.Item::productId))
+                        .toList();
+
+                for (OrderPlacedEvent.Item item : items) {
+                    int updated = productRepository.increaseStock(item.productId(), item.quantity());
+                    if (updated == 0) {
+                        log.error("Product {} no longer exists, could not return {} unit(s) for order {}",
+                                item.productId(), item.quantity(), event.orderId());
+                    }
+                }
+
+                reservation.release();
+                reservationRepository.save(reservation);
+                log.info("Released stock for order {} ({} product(s))", event.orderId(), items.size());
+            }
+            case RELEASED -> log.info(
+                    "Stock for order {} already released, skipping duplicate cancel", event.orderId());
+            case REJECTED -> log.info(
+                    "Order {} never reserved stock, nothing to release", event.orderId());
+            case CANCELLED -> log.info(
+                    "Order {} already marked cancelled, skipping duplicate cancel", event.orderId());
+        }
     }
 }

@@ -34,4 +34,12 @@ public class StockReservation {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void release() {
+        if (status != ReservationStatus.RESERVED) {
+            throw new IllegalStateException(
+                    "Only a RESERVED reservation can be released, but order " + orderId + " is " + status);
+        }
+        this.status = ReservationStatus.RELEASED;
+    }
 }
