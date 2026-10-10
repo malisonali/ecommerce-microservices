@@ -32,6 +32,7 @@ public class OrderService {
     private final ProductClient productClient;
     private final OrderEventPublisher orderEventPublisher;
 
+    @Transactional
     public OrderResponse placeOrder(String userEmail, OrderRequest request) {
 
         // 1. Merge duplicate lines: [{5, 2}, {5, 1}] becomes {5: 3}
