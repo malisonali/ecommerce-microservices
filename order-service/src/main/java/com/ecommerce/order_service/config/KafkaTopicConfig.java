@@ -30,4 +30,14 @@ public class KafkaTopicConfig {
                         String.valueOf(Duration.ofDays(30).toMillis()))
                 .build();
     }
+
+    @Bean
+    public NewTopic paymentEventsDlt() {
+        return TopicBuilder.name("payment-events" + KafkaErrorHandlingConfig.DLT_SUFFIX)
+                .partitions(3)
+                .replicas(1)
+                .config(TopicConfig.RETENTION_MS_CONFIG,
+                        String.valueOf(Duration.ofDays(30).toMillis()))
+                .build();
+    }
 }

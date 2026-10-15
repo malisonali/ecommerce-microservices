@@ -26,7 +26,7 @@ public class InventoryEventListener {
 
         switch (event.eventType()) {
             case InventoryEvent.STOCK_RESERVED ->
-                    orderService.confirmOrder(event.orderId());
+                    log.info("Stock reserved for order {}, waiting for payment", event.orderId());
             case InventoryEvent.STOCK_RESERVATION_FAILED ->
                     orderService.rejectOrder(event.orderId(), event.reason());
             default ->

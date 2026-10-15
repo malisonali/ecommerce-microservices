@@ -5,6 +5,7 @@ import com.ecommerce.notification_service.entity.NotificationType;
 import com.ecommerce.notification_service.entity.OrderRecipient;
 import com.ecommerce.notification_service.event.InventoryEvent;
 import com.ecommerce.notification_service.event.OrderEvent;
+import com.ecommerce.notification_service.event.PaymentEvent;
 import com.ecommerce.notification_service.exception.RecipientNotKnownYetException;
 import com.ecommerce.notification_service.repository.NotificationRepository;
 import com.ecommerce.notification_service.repository.OrderRecipientRepository;
@@ -45,6 +46,12 @@ public class NotificationService {
                     event.eventId());
 
             case OrderEvent.ORDER_CANCELLED -> {
+                // A failed payment cancels the order, but the customer gets a
+                // "payment failed" email for that, so a second email is noise
+                if ("PAYMENT_FAILED".equals(event.cancelledBy())) {
+                    log.info("Order {} was cancelled by a failed payment, skipping the cancel email", orderId);
+                    return;
+                }
                 // If we already said "sorry, out of stock", a second "cancelled" email is noise
                 if (notificationRepository.existsByOrderIdAndType(orderId, NotificationType.ORDER_REJECTED)) {
                     log.info("Order {} was already rejected, skipping the cancel email", orderId);
@@ -65,21 +72,53 @@ public class NotificationService {
     public void handleInventoryEvent(InventoryEvent event) {
         Long orderId = event.orderId();
 
-        // The storeroom's reply has no email, so look it up in our own address book
-        String email = recipientRepository.findById(orderId)
+        switch (event.eventType()) {
+            // Stock alone doesn't confirm an order any more: we wait for the payment
+            case InventoryEvent.STOCK_RESERVED ->
+                    log.info("Stock reserved for order {}, no email until payment", orderId);
+
+            case InventoryEvent.STOCK_RESERVATION_FAILED -> {
+                String email = recipientRepository.findById(orderId)
+                        .map(OrderRecipient::getUserEmail)
+                        .orElseThrow(() -> new RecipientNotKnownYetException(orderId));
+
+                send(orderId, NotificationType.ORDER_REJECTED, email,
+                        "Sorry, we couldn't complete order #" + orderId,
+                        "We're sorry. Some items in order #" + orderId + " are out of stock, "
+                                + "so the order was cancelled. You have not been charged.",
+                        event.eventId());
+            }
+
+            default -> log.debug("No email for {} on order {}", event.eventType(), orderId);
+        }
+    }
+
+    @Transactional
+    public void handlePaymentEvent(PaymentEvent event) {
+        Long orderId = event.orderId();
+
+        // The payment note carries the email; the address book is the backup
+        String email = event.userEmail() != null
+                ? event.userEmail()
+                : recipientRepository.findById(orderId)
                 .map(OrderRecipient::getUserEmail)
                 .orElseThrow(() -> new RecipientNotKnownYetException(orderId));
 
         switch (event.eventType()) {
-            case InventoryEvent.STOCK_RESERVED -> send(orderId, NotificationType.ORDER_CONFIRMED, email,
+            case PaymentEvent.PAYMENT_COMPLETED -> send(orderId, NotificationType.ORDER_CONFIRMED, email,
                     "Your order #" + orderId + " is confirmed 🎉",
-                    "Good news! Your order #" + orderId + " is confirmed and will ship soon.",
+                    "Good news! We received your payment of ₹" + event.amount().toPlainString()
+                            + " for order #" + orderId + ".\n"
+                            + "Transaction ID: " + event.transactionId() + "\n\n"
+                            + "Your order will ship soon.",
                     event.eventId());
 
-            case InventoryEvent.STOCK_RESERVATION_FAILED -> send(orderId, NotificationType.ORDER_REJECTED, email,
-                    "Sorry, we couldn't complete order #" + orderId,
-                    "We're sorry. Some items in order #" + orderId + " are out of stock, "
-                            + "so the order was cancelled. You have not been charged.",
+            case PaymentEvent.PAYMENT_FAILED -> send(orderId, NotificationType.PAYMENT_FAILED, email,
+                    "Payment failed for order #" + orderId,
+                    "We couldn't take the payment of ₹" + event.amount().toPlainString()
+                            + " for order #" + orderId + ".\n"
+                            + "Reason: " + event.reason() + "\n\n"
+                            + "The order has been cancelled and you have not been charged.",
                     event.eventId());
 
             default -> log.debug("No email for {} on order {}", event.eventType(), orderId);

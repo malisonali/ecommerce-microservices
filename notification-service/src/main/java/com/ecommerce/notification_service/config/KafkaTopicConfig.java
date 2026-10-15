@@ -29,4 +29,9 @@ public class KafkaTopicConfig {
                         String.valueOf(Duration.ofDays(30).toMillis()))
                 .build();
     }
+
+    @Bean
+    public NewTopic paymentEventsNotificationDlt() {
+        return dlt("payment-events" + KafkaErrorHandlingConfig.DLT_SUFFIX);
+    }
 }

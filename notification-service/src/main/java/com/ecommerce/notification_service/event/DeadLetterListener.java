@@ -15,7 +15,8 @@ import java.nio.charset.StandardCharsets;
 public class DeadLetterListener {
 
     @KafkaListener(topics = {"order-events.notification-service.DLT",
-            "inventory-events.notification-service.DLT"},
+            "inventory-events.notification-service.DLT",
+            "payment-events.notification-service.DLT"},
             groupId = "notification-service-dlt",
             properties = "value.deserializer=org.apache.kafka.common.serialization.StringDeserializer")
     public void onDeadLetter(ConsumerRecord<String, String> record) {

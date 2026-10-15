@@ -119,21 +119,39 @@ public class OrderService {
     }
 
     @Transactional
-    public void confirmOrder(Long orderId) {
+    public void confirmPaidOrder(Long orderId, String transactionId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         switch (order.getStatus()) {
             case PENDING -> {
                 order.changeStatus(OrderStatus.CONFIRMED);
-                log.info("Order {} confirmed: stock reserved", orderId);
+                log.info("Order {} confirmed: payment {} received", orderId, transactionId);
+            }
+            case CONFIRMED, SHIPPED, DELIVERED -> log.info(
+                    "Order {} is already {}, skipping duplicate payment result", orderId, order.getStatus());
+            case CANCELLED -> log.warn(
+                    "Order {} was paid ({}) but is already CANCELLED: refund needed (Day 20)",
+                    orderId, transactionId);
+        }
+    }
+
+    @Transactional
+    public void cancelUnpaidOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        switch (order.getStatus()) {
+            case PENDING -> {
+                order.changeStatus(OrderStatus.CANCELLED);
+                // Same event as a customer cancel, so the storeroom gives the stock back
+                orderEventPublisher.publishOrderCancelled(order, "PAYMENT_FAILED");
+                log.warn("Order {} cancelled: payment failed ({})", orderId, reason);
             }
             case CANCELLED -> log.info(
-                    "Stock reserved for order {} but it was already cancelled. "
-                            + "The Product Service will release it when it reads ORDER_CANCELLED", orderId);
-            default -> log.info(
-                    "Order {} is already {}, ignoring duplicate STOCK_RESERVED",
-                    orderId, order.getStatus());
+                    "Order {} is already CANCELLED, skipping duplicate payment failure", orderId);
+            case CONFIRMED, SHIPPED, DELIVERED -> log.error(
+                    "Order {} is {} but payment FAILED. This needs a human!", orderId, order.getStatus());
         }
     }
 
